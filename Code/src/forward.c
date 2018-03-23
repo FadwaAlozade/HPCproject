@@ -2,6 +2,7 @@
 #include <math.h>
 #include <shalw.h>
 #include <export.h>
+#include <mpi.h>
 
 double hFil_forward(int t, int i, int j) {
   //Phase d'initialisation du filtre
@@ -102,7 +103,7 @@ double vPhy_forward(int t, int i, int j) {
 	  (dissip * VFIL(t - 1, i, j)));
 }
 
-void forward(void) {
+void forward(int NP, int rang) {
   FILE *file = NULL;
   double svdt = 0.;
   int t = 0;
@@ -131,6 +132,8 @@ void forward(void) {
 	VFIL(t, i, j) = vFil_forward(t, i, j);
       }
     }
+
+    MPI_Gather(hFil+g_size_y*(rang!=0), g_size_x/NP*g_size_y, MPI_DOUBLE, g_hFil, g_size_x/NP*g_size_y, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
     if (file_export) {
       export_step(file, t);
