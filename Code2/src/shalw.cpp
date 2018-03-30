@@ -48,7 +48,11 @@ int main(int argc, char **argv) {
 		/* Initialisations / calcul */		
 		gauss_init();
 		printf("State initialised\n");	
-	}
+        for (int j=0; j<size_y ; j++){
+            printf(" hfil[%d] = %f\n", j, *(hFil+j));
+        }
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
 
   size_y = g_size_y ;
   size_x = (rang==0 || rang==NP-1)?(g_size_x/NP +1):(g_size_x/NP +2);
