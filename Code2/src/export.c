@@ -13,7 +13,7 @@ FILE *create_file(void) {
 }
 
 void export_step(FILE *f, int t) {
-  fwrite((void *)&G_HFIL(t, 0, 0), sizeof(double), size_x * size_y, f);
+  fwrite((void *)&G_HFIL(t, 0, 0), sizeof(double), g_size_x * g_size_y, f);
 }
 
 void finalize_export(FILE *f) {

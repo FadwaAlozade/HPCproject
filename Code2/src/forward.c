@@ -185,7 +185,7 @@ void forward(int NP, int rang) {
   if (rang==0){
   	if (file_export) {
 	    finalize_export(file);
-	    printf("\n\n");
+	    //printf("\n\n");
 	  }
   }
   
