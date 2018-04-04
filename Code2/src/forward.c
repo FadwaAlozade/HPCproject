@@ -112,10 +112,13 @@ void forward(int NP, int rang) {
   double svdt = 0.;
   int t = 0;
   
-  if (file_export) {
-    file = create_file();
-    export_step(file, t);
+  if (rang==0) {
+  	if (file_export) {
+	    file = create_file();
+	    export_step(file, t);
+	  }
   }
+  
   
   for (t = 1; t < nb_steps; t++) {
     /* Récupération et envoi des lignes à la frontière avec les proc voisins */
@@ -168,17 +171,22 @@ void forward(int NP, int rang) {
 
     MPI_Gather(hFil+g_size_y*(rang!=0), g_size_x/NP*g_size_y, MPI_DOUBLE, g_hFil, g_size_x/NP*g_size_y, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-    if (file_export) {
-      export_step(file, t);
+    if (rang==0){
+    	if (file_export) {
+	      export_step(file, t);
+	    }
     }
-    
+     
     if (t == 2) {
       dt = svdt;
     }
   }
 
-  if (file_export) {
-    finalize_export(file);
-    printf("\n\n");
+  if (rang==0){
+  	if (file_export) {
+	    finalize_export(file);
+	    printf("\n\n");
+	  }
   }
+  
 }
