@@ -62,27 +62,25 @@ int main(int argc, char **argv) {
     //MPI_Barrier(MPI_COMM_WORLD);
     NBdim = sqrt(NP); // nombre de blocs par dimension (ligne ou colonne)
 	size_y = (rang%NBdim==0 || rang%NBdim==NBdim-1)?(g_size_y/NBdim +1):(g_size_y/NBdim +2); // Si c'est les blocs de la première colonne ou la dernière colonne, on n'alloue que 1 colonne en plus
-	size_x = ( ((rang>=0)&&(rang<NBdim-1)) || ((rang>=NP-NBdim)&&(rang<NP)) )?(g_size_x/NBdim +1):(g_size_x/NBdim +2); // Si c'est les blocs de la première ligne ( 0<=rang<NP-NBdim) ou dernière ligne ( NP-NBdim <=rang<NP), alors on n'alloue qu'une seule ligne en plus
+	size_x = ( ((rang>=0)&&(rang<NBdim)) || ((rang>=NP-NBdim)&&(rang<NP)) )?(g_size_x/NBdim +1):(g_size_x/NBdim +2); // Si c'est les blocs de la première ligne ( 0<=rang<NBdim) ou dernière ligne ( NP-NBdim <=rang<NP), alors on n'alloue qu'une seule ligne en plus
 
 	loc_alloc();
 	printf("Local memory allocated. Rang = %d \n", rang); 
-   
-
-	/* Récupération et envoi des lignes à la frontière avec les proc voisins */
-	// if (p!=0)     MPI_Send(local_im+w, w, MPI_UNSIGNED_CHAR, p-1, TAG_FIRST_ROW, MPI_COMM_WORLD);
-	// if (p!=NP-1)  MPI_Send(local_im+w*(local_h-2), w, MPI_UNSIGNED_CHAR, p+1, TAG_LAST_ROW, MPI_COMM_WORLD);
-	// if (p!=NP-1)  MPI_Recv(local_im+w*(local_h-1), w, MPI_UNSIGNED_CHAR, p+1, TAG_FIRST_ROW, MPI_COMM_WORLD, &status);
-	// if (p!=0)     MPI_Recv(local_im, w, MPI_UNSIGNED_CHAR, p-1, TAG_LAST_ROW, MPI_COMM_WORLD, &status);
 
 	printf("Avant Scatter \n");
-	MPI_Scatter(g_hFil /*sbuf*/, size_x/NP*size_y /*scount*/, MPI_DOUBLE /*sdtype*/, hFil+size_y*(rang!=0) /*rbuf*/, size_x/NP*size_y /*rcount*/, MPI_DOUBLE /*rdtype*/, 0 /*root*/, MPI_COMM_WORLD /*comm*/);
+	MPI_Scatter(g_hFil /*sbuf*/, g_size_x*g_size_y/pow(NBdim,2) /*scount*/, MPI_DOUBLE /*sdtype*/, hFil+1*((rang%NBdim)!=0)+size_y*(!((rang>=0)&&(rang<NBdim))) /*rbuf*/, g_size_x*g_size_y/pow(NBdim,2) /*rcount*/, MPI_DOUBLE /*rdtype*/, 0 /*root*/, MPI_COMM_WORLD /*comm*/);
 	printf("Après Scatter \n");
 
-	forward(NP, rang);
+	forward(NBdim, rang);
 	printf("State computed\n");
 
-	dealloc();
-	printf("Memory freed\n");
+	loc_dealloc();
+	printf("Local memory freed. Rank = %d \n", rang);
+
+	if (rang==0){
+		dealloc();
+		printf("Global memory freed.\n");
+	}
 
 	MPI_Finalize();
 	/* fin du chronometrage */

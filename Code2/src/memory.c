@@ -2,7 +2,7 @@
 #include <shalw.h>
 
 void alloc(void) {
-  g_hFil = (double *) calloc(2*g_size_x*g_size_y, sizeof(double)); // on utilise deux grille. En fonction de t, on accède soit à la première, soit à la deuxième.
+  g_hFil = (double *) calloc(2*g_size_x*g_size_y, sizeof(double)); // on utilise deux grilles. En fonction de t, on accède soit à la première, soit à la deuxième.
   // g_uFil = (double *) calloc(2*g_size_x*g_size_y, sizeof(double));
   // g_vFil = (double *) calloc(2*g_size_x*g_size_y, sizeof(double));
   // g_hPhy = (double *) calloc(2*g_size_x*g_size_y, sizeof(double));
