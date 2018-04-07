@@ -104,71 +104,94 @@ double vPhy_forward(int t, int i, int j) {
 }
 
 void forward(int NP, int rang) {
-   MPI_Status status;
-    MPI_Request isreq1, isreq2, irreq1, irreq2;
-  int TAG_FIRST_ROW = 0;
-  int TAG_LAST_ROW = 1;
-  FILE *file = NULL;
-  double svdt = 0.;
-  int t = 0;
-  
-  if (rang==0) {
-  	if (file_export) {
-	    file = create_file();
-	    export_step(file, t);
-	  }
-  }
-  
-  
-  for (t = 1; t < nb_steps; t++) {
-    /* Récupération et envoi des lignes à la frontière avec les proc voisins */
-    printf("");
-    if (rang!=0)     MPI_Send(hFil+size_y, size_y, MPI_DOUBLE, rang-1, TAG_FIRST_ROW, MPI_COMM_WORLD);
-    printf("First row Sent. Rank = %d\n", rang);
-    if (rang!=NP-1)  MPI_Send(hFil+size_y*(size_x-2), size_y, MPI_DOUBLE, rang+1, TAG_LAST_ROW, MPI_COMM_WORLD);
-      printf("Last row Sent. Rank = %d\n", rang);
-    if (rang!=NP-1)  MPI_Recv(hFil+size_y*(size_x-1), size_y, MPI_DOUBLE, rang+1, TAG_FIRST_ROW, MPI_COMM_WORLD, &status);
-      printf("First row Received. Rank = %d\n", rang);
-    if (rang!=0)     MPI_Recv(hFil, size_y, MPI_DOUBLE, rang-1, TAG_LAST_ROW, MPI_COMM_WORLD, &status);
-    printf("Last row Received. Rank = %d\n", rang);
+	MPI_Status status;
+	MPI_Datatype col_type;
+	MPI_Datatype block_type;
+	int TAG_FIRST_COL = 99;
+	int TAG_LAST_COL = 100;
+	int TAG_FIRST_ROW = 0;
+	int TAG_LAST_ROW = 1;
+	FILE *file = NULL;
+	double svdt = 0.;
+	int t = 0;
+	int NBdim = sqrt(NP);
 
-    if (t == 1) {
-      svdt = dt;
-      dt = 0;
-    }
-    if (t == 2){
-      dt = svdt / 2.;
-    }
+	MPI_Type_vector(g_size_x/NBdim, g_size_y/NBdim, g_size_y, MPI_DOUBLE,&block_type);
+	MPI_Type_commit(&block_type);
 
-    for (int j = 0; j < size_y; j++) {
-      for (int i = 0; i < size_x; i++) {
-	HPHY(t, i, j) = hPhy_forward(t, i, j);
-	UPHY(t, i, j) = uPhy_forward(t, i, j);
-	VPHY(t, i, j) = vPhy_forward(t, i, j);
-	HFIL(t, i, j) = hFil_forward(t, i, j);
-	UFIL(t, i, j) = uFil_forward(t, i, j);
-	VFIL(t, i, j) = vFil_forward(t, i, j);
-      }
-    }
+	printf("Avant Scatter \n");
+	MPI_Scatter(g_hFil /*sbuf*/, 1 /*scount*/, block_type /*sdtype*/, hFil+1*((rang%NBdim)!=0)+size_y*(!((rang>=0)&&(rang<NBdim))) /*rbuf*/, 1 /*rcount*/, block_type /*rdtype*/, 0 /*root*/, MPI_COMM_WORLD /*comm*/);
+	printf("Après Scatter \n");
 
-    MPI_Gather(hFil+g_size_y*(rang!=0), g_size_x/NP*g_size_y, MPI_DOUBLE, g_hFil, g_size_x/NP*g_size_y, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	if (rang==0) {
+		if (file_export) {
+			file = create_file();
+			export_step(file, t);
+		}
+	}
 
-    if (rang==0){
-    	if (file_export) {
-	      export_step(file, t);
-	    }
-    }
-     
-    if (t == 2) {
-      dt = svdt;
-    }
-  }
+	MPI_Type_vector(size_x, 1, size_y, MPI_DOUBLE,&col_type);
+	MPI_Type_commit(&col_type);
+	for (t = 1; t < nb_steps; t++) {
+		/* Récupération et envoi des lignes à la frontière avec les proc voisins */
+		// Envoi des colonnes
+		printf("");
+		if (rang%NBdim!=0)	MPI_Send(hFil+1, 1, col_type, rang-1, TAG_FIRST_COL, MPI_COMM_WORLD);
+		printf("First column Sent. Rank = %d\n", rang);
+		if (rang%NBdim!=NBdim-1)  MPI_Send(hFil+size_y-2, 1, col_type, rang+1, TAG_LAST_COL, MPI_COMM_WORLD);
+		printf("Last column Sent. Rank = %d\n", rang);
+		if (rang%NBdim!=NBdim-1)  MPI_Recv(hFil+size_y-1, 1, col_type, rang+1, TAG_FIRST_COL, MPI_COMM_WORLD, &status);
+		printf("First column Received. Rank = %d\n", rang);
+		if (rang%NBdim!=0)     MPI_Recv(hFil, 1, col_type, rang-1, TAG_LAST_COL, MPI_COMM_WORLD, &status);
+		printf("Last column Received. Rank = %d\n", rang);
 
-  if (rang==0){
-  	if (file_export) {
-	    finalize_export(file);
-	    //printf("\n\n");
-	  }
-  }
-  
+		// Envoi des lignes 
+		if ( !((rang>=0)&&(rang<NBdim)))     MPI_Send(hFil+size_y, size_y, MPI_DOUBLE, rang-NBdim, TAG_FIRST_ROW, MPI_COMM_WORLD);
+		printf("First row Sent. Rank = %d\n", rang);
+		if ( !((rang>=NP-NBdim)&&(rang<NP)))  MPI_Send(hFil+size_y*(size_x-2), size_y, MPI_DOUBLE, rang+NBdim, TAG_LAST_ROW, MPI_COMM_WORLD);
+		printf("Last row Sent. Rank = %d\n", rang);
+		if ( !((rang>=NP-NBdim)&&(rang<NP)))  MPI_Recv(hFil+size_y*(size_x-1), size_y, MPI_DOUBLE, rang+NBdim, TAG_FIRST_ROW, MPI_COMM_WORLD, &status);
+		printf("First row Received. Rank = %d\n", rang);
+		if ( !((rang>=0)&&(rang<NBdim)))     MPI_Recv(hFil, size_y, MPI_DOUBLE, rang-NBdim, TAG_LAST_ROW, MPI_COMM_WORLD, &status);
+		printf("Last row Received. Rank = %d\n", rang);
+
+		if (t == 1) {
+			svdt = dt;
+			dt = 0;
+		}
+		if (t == 2){
+			dt = svdt / 2.;
+		}
+
+		for (int j = 0; j < size_y; j++) {
+			for (int i = 0; i < size_x; i++) {
+				HPHY(t, i, j) = hPhy_forward(t, i, j);
+				UPHY(t, i, j) = uPhy_forward(t, i, j);
+				VPHY(t, i, j) = vPhy_forward(t, i, j);
+				HFIL(t, i, j) = hFil_forward(t, i, j);
+				UFIL(t, i, j) = uFil_forward(t, i, j);
+				VFIL(t, i, j) = vFil_forward(t, i, j);
+			}
+		}
+
+		MPI_Gather(hFil+1*((rang%NBdim)!=0)+size_y*(!((rang>=0)&&(rang<NBdim))), 1 , block_type, g_hFil, 1, block_type, 0, MPI_COMM_WORLD);
+
+		if (rang==0){
+			if (file_export) {
+				export_step(file, t);
+			}
+		}
+
+		if (t == 2) {
+			dt = svdt;
+		}
+	}
+
+	if (rang==0){
+		if (file_export) {
+			finalize_export(file);
+			//printf("\n\n");
+		}
+	}
+
 }

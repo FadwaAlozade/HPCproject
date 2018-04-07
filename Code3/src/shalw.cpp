@@ -67,10 +67,6 @@ int main(int argc, char **argv) {
 	loc_alloc();
 	printf("Local memory allocated. Rang = %d \n", rang); 
 
-	printf("Avant Scatter \n");
-	MPI_Scatter(g_hFil /*sbuf*/, g_size_x*g_size_y/pow(NBdim,2) /*scount*/, MPI_DOUBLE /*sdtype*/, hFil+1*((rang%NBdim)!=0)+size_y*(!((rang>=0)&&(rang<NBdim))) /*rbuf*/, g_size_x*g_size_y/pow(NBdim,2) /*rcount*/, MPI_DOUBLE /*rdtype*/, 0 /*root*/, MPI_COMM_WORLD /*comm*/);
-	printf("Après Scatter \n");
-
 	forward(NBdim, rang);
 	printf("State computed\n");
 
