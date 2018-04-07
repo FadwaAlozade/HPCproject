@@ -19,13 +19,7 @@ void loc_alloc(void) {
   vPhy = (double *) calloc(2*size_x*size_y, sizeof(double));
 }
 
-void dealloc(void) {
-  // free(g_uFil);
-  free(g_hFil);
-  // free(g_vFil);
-  // free(g_hPhy);
-  // free(g_uPhy);
-  // free(g_vPhy);
+void loc_dealloc(void) {
   free(hFil);
   free(uFil);
   free(vFil);
@@ -33,4 +27,9 @@ void dealloc(void) {
   free(uPhy);
   free(vPhy);
 
+}
+
+
+void dealloc(void){
+	free(g_hFil);
 }
