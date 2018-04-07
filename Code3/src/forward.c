@@ -106,7 +106,7 @@ double vPhy_forward(int t, int i, int j) {
 void forward(int NP, int rang) {
 	MPI_Status status;
 	MPI_Datatype col_type;
-	MPI_Datatype block_type;
+	MPI_Datatype block, block_type;
 	int TAG_FIRST_COL = 99;
 	int TAG_LAST_COL = 100;
 	int TAG_FIRST_ROW = 0;
@@ -116,11 +116,14 @@ void forward(int NP, int rang) {
 	int t = 0;
 	int NBdim = sqrt(NP);
 
-	MPI_Type_vector(g_size_x/NBdim, g_size_y/NBdim, g_size_y, MPI_DOUBLE,&block_type);
-	MPI_Type_commit(&block_type);
+	MPI_Type_vector(g_size_x/NBdim, g_size_y/NBdim, g_size_y, MPI_DOUBLE,&block);
+	MPI_Type_commit(&block);
+	MPI_Type_create_resized(block, 0, g_size_y/NBdim*sizeof(double), &block_type);
+ 	MPI_Type_commit(&block_type);
 
 	printf("Avant Scatter \n");
 	MPI_Scatter(g_hFil /*sbuf*/, 1 /*scount*/, block_type /*sdtype*/, hFil+1*((rang%NBdim)!=0)+size_y*(!((rang>=0)&&(rang<NBdim))) /*rbuf*/, 1 /*rcount*/, block_type /*rdtype*/, 0 /*root*/, MPI_COMM_WORLD /*comm*/);
+
 	printf("Après Scatter \n");
 
 	if (rang==0) {
