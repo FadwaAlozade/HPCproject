@@ -65,13 +65,12 @@ int main(int argc, char **argv) {
 	forward(NP, rang);
 	printf("State computed\n");
 
-	loc_dealloc();
-	printf("Local memory freed. Rank = %d \n", rang);
-
 	if(rang==0){
 		dealloc();
 		printf("Global memory freed\n");
 	}
+	loc_dealloc();
+	printf("Local memory freed. Rank = %d \n", rang);
 
 	MPI_Finalize();
 	/* fin du chronometrage */

@@ -122,14 +122,6 @@ void forward(int NP, int rang) {
   
   for (t = 1; t < nb_steps; t++) {
     /* Récupération et envoi des lignes à la frontière avec les proc voisins */
-    // if (rang!=0)     MPI_Isend(hFil+size_y, size_y, MPI_DOUBLE, rang-1, TAG_FIRST_ROW, MPI_COMM_WORLD, &isreq1);
-    // printf("First row Sent. Rank = %d\n", rang);
-    // if (rang!=NP-1)  MPI_Isend(hFil+size_y*(size_x-2), size_y, MPI_DOUBLE, rang+1, TAG_LAST_ROW, MPI_COMM_WORLD, &isreq2);
-    //   printf("Last row Sent. Rank = %d\n", rang);
-    // if (rang!=NP-1)  MPI_Irecv(hFil+size_y*(size_x-1), size_y, MPI_DOUBLE, rang+1, TAG_FIRST_ROW, MPI_COMM_WORLD, &irreq1);
-    //   printf("First row Received. Rank = %d\n", rang);
-    // if (rang!=0)     MPI_Irecv(hFil, size_y, MPI_DOUBLE, rang-1, TAG_LAST_ROW, MPI_COMM_WORLD, &irreq2);
-    // printf("Last row Received. Rank = %d\n", rang);
     printf("");
     if (rang!=0)     MPI_Send(hFil+size_y, size_y, MPI_DOUBLE, rang-1, TAG_FIRST_ROW, MPI_COMM_WORLD);
     printf("First row Sent. Rank = %d\n", rang);
@@ -140,15 +132,6 @@ void forward(int NP, int rang) {
     if (rang!=0)     MPI_Recv(hFil, size_y, MPI_DOUBLE, rang-1, TAG_LAST_ROW, MPI_COMM_WORLD, &status);
     printf("Last row Received. Rank = %d\n", rang);
 
-    // MPI_Cancel(&isreq1);
-    // MPI_Cancel(&isreq2);
-    // MPI_Cancel(&irreq1);
-    // MPI_Cancel(&irreq2);
-   
-    // MPI_Wait(&isreq1, &status);
-    // MPI_Wait(&isreq2, &status);
-    // MPI_Wait(&irreq1, &status);
-    // MPI_Wait(&irreq2, &status);
 
     if (t == 1) {
       svdt = dt;
@@ -185,7 +168,6 @@ void forward(int NP, int rang) {
   if (rang==0){
   	if (file_export) {
 	    finalize_export(file);
-	    //printf("\n\n");
 	  }
   }
   
