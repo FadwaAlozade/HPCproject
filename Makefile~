@@ -1,0 +1,9 @@
+all:
+	make -C Bande
+	make -C Bloc
+	make -C Sequentiel
+
+clean:
+	make clean -C Bande
+	make clean -C Bloc
+	make clean -C Sequentiel 
