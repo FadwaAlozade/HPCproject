@@ -8,11 +8,10 @@ void gauss_init(void) {
   gmy = size_y * dy / 2 ;
   gsx = 25000 ;
   gsy = 25000 ;
-  
 
   for (int i = 0; i < size_x;  i++) {
     for (int j = 0; j < size_y; j++) {
-      G_HFIL(0, i, j) = height *
+      HFIL(0, i, j) = height *
 	(exp(- pow((i * dx - gmx) / gsx, 2) / 2.)) *
 	(exp(- pow((j * dy - gmy) / gsy, 2) / 2.)) ;
     }

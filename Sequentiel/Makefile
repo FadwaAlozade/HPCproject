@@ -22,5 +22,5 @@ obj/%.o : src/%.c
 clean :
 	rm -f bin/* obj/*
 exec:
-	./bin/shalw
+	./bin/shalw -x 8192 -y 8192 -t 20
 
