@@ -1,4 +1,4 @@
-CXX=mpic++ -Wall -O3
+CXX=g++ -Wall -O3
 
 CPPFLAGS=-Iinc
 
@@ -21,6 +21,7 @@ obj/%.o : src/%.c
 
 clean :
 	rm -f bin/* obj/*
+
 exec:
 	./bin/shalw -x 8192 -y 8192 -t 20
 
