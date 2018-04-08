@@ -1,1 +1,1 @@
-void forward(int NP, int rang);
+void forward(void);

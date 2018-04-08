@@ -9,8 +9,8 @@ void parse_args(int argc, char **argv) {
 
   desc.add_options()
     ("help,h", "Display this message")
-    ("g_size_x,x", po::value<int>()->default_value(256), "Global Size of the first dimension of the domain")
-    ("g_size_y,y", po::value<int>()->default_value(256), "Global Size of the second dimension of the domain")
+    ("size_x,x", po::value<int>()->default_value(256), "Size of the first dimension of the domain")
+    ("size_y,y", po::value<int>()->default_value(256), "Size of the second dimension of the domain")
     ("nb_steps,t", po::value<int>()->default_value(1000), "Number of time steps")
     ("dt", po::value<double>()->default_value(300), "dt")
     ("dx", po::value<double>()->default_value(1000), "dx")
@@ -33,8 +33,8 @@ void parse_args(int argc, char **argv) {
     exit(EXIT_SUCCESS);
   }
 
-  g_size_x = vars["g_size_x"].as<int>();
-  g_size_y = vars["g_size_y"].as<int>();
+  size_x = vars["size_x"].as<int>();
+  size_y = vars["size_y"].as<int>();
   nb_steps = vars["nb_steps"].as<int>();
   dt = vars["dt"].as<double>();
   dx = vars["dx"].as<double>();

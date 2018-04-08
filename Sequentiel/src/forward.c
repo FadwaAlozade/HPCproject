@@ -2,7 +2,6 @@
 #include <math.h>
 #include <shalw.h>
 #include <export.h>
-#include <mpi.h>
 
 double hFil_forward(int t, int i, int j) {
   //Phase d'initialisation du filtre
@@ -103,11 +102,7 @@ double vPhy_forward(int t, int i, int j) {
 	  (dissip * VFIL(t - 1, i, j)));
 }
 
-void forward(int NP, int rang) {
-   MPI_Status status;
-    MPI_Request isreq1, isreq2, irreq1, irreq2;
-  int TAG_FIRST_ROW = 0;
-  int TAG_LAST_ROW = 1;
+void forward(void) {
   FILE *file = NULL;
   double svdt = 0.;
   int t = 0;
@@ -116,30 +111,8 @@ void forward(int NP, int rang) {
     file = create_file();
     export_step(file, t);
   }
-  
-  printf("Avant boucle. Rank = %d\n", rang);
+    
   for (t = 1; t < nb_steps; t++) {
-    printf("Dans boucle. t = %d, Rank = %d\n", t, rang);
-    /* Récupération et envoi des lignes à la frontière avec les proc voisins */
-    if (rang!=0)     MPI_Isend(hFil+size_y, size_y, MPI_DOUBLE, rang-1, TAG_FIRST_ROW, MPI_COMM_WORLD, &isreq1);
-    printf("First row Sent. Rank = %d\n", rang);
-    if (rang!=NP-1)  MPI_Isend(hFil+size_y*(size_x-2), size_y, MPI_DOUBLE, rang+1, TAG_LAST_ROW, MPI_COMM_WORLD, &isreq2);
-      printf("Last row Sent. Rank = %d\n", rang);
-    if (rang!=NP-1)  MPI_Irecv(hFil+size_y*(size_x-1), size_y, MPI_DOUBLE, rang+1, TAG_FIRST_ROW, MPI_COMM_WORLD, &irreq1);
-      printf("First row Received. Rank = %d\n", rang);
-    if (rang!=0)     MPI_Irecv(hFil, size_y, MPI_DOUBLE, rang-1, TAG_LAST_ROW, MPI_COMM_WORLD, &irreq2);
-    printf("Last row Received. Rank = %d\n", rang);
-
-    MPI_Cancel(&isreq1);
-    MPI_Cancel(&isreq2);
-    MPI_Cancel(&irreq1);
-    MPI_Cancel(&irreq2);
-   
-    MPI_Wait(&isreq1, &status);
-    MPI_Wait(&isreq2, &status);
-    MPI_Wait(&irreq1, &status);
-    MPI_Wait(&irreq2, &status);
-
     if (t == 1) {
       svdt = dt;
       dt = 0;
@@ -159,8 +132,6 @@ void forward(int NP, int rang) {
       }
     }
 
-    MPI_Gather(hFil+g_size_y*(rang!=0), g_size_x/NP*g_size_y, MPI_DOUBLE, g_hFil, g_size_x/NP*g_size_y, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
     if (file_export) {
       export_step(file, t);
     }
@@ -172,6 +143,5 @@ void forward(int NP, int rang) {
 
   if (file_export) {
     finalize_export(file);
-    printf("\n\n");
   }
 }

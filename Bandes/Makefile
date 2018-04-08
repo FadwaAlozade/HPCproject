@@ -24,4 +24,3 @@ clean :
 
 exec:
 	mpirun -n 2 -bynode ./bin/shalw -x 8192 -y 8192 -t 20
-
