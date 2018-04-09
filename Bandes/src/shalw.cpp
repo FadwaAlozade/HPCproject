@@ -79,3 +79,7 @@ int main(int argc, char **argv) {
 
   return EXIT_SUCCESS;
 }
+
+
+// Comm forward.c sur tous les 6 tableaux a la fin de la boucle
+// Homogénéiser les ufil / UFil sur les comm

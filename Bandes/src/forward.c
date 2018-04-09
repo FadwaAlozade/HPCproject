@@ -132,6 +132,15 @@ void forward(int NP, int rang) {
     if (rang!=0)     MPI_Recv(hFil, size_y, MPI_DOUBLE, rang-1, TAG_LAST_ROW, MPI_COMM_WORLD, &status);
     //printf("Last row Received. Rank = %d\n", rang);
 
+    //  if (rang!=0)     MPI_Send(&HFIL(t,1,0), size_y, MPI_DOUBLE, rang-1, TAG_FIRST_ROW, MPI_COMM_WORLD);
+    // //printf("First row Sent. Rank = %d\n", rang);
+    // if (rang!=NP-1)  MPI_Send(&HFIL(t,-2,1) , size_y, MPI_DOUBLE, rang+1, TAG_LAST_ROW, MPI_COMM_WORLD);
+    //  // printf("Last row Sent. Rank = %d\n", rang);
+    // if (rang!=NP-1)  MPI_Recv(hFil+size_y*(size_x-1), size_y, MPI_DOUBLE, rang+1, TAG_FIRST_ROW, MPI_COMM_WORLD, &status);
+    //  // printf("First row Received. Rank = %d\n", rang);
+    // if (rang!=0)     MPI_Recv(hFil, size_y, MPI_DOUBLE, rang-1, TAG_LAST_ROW, MPI_COMM_WORLD, &status);
+    // //printf("Last row Received. Rank = %d\n", rang);
+
 
     if (t == 1) {
       svdt = dt;
