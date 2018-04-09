@@ -30,19 +30,3 @@ extern std::string export_path;
 #define G_HFIL(t, i, j) g_hFil[ (j) +			\
 			    (i) * g_size_y +		\
 			    ((t)%2) * g_size_x * g_size_y ]
-// #define G_UFIL(t, i, j) g_uFil[ (j) +			\
-// 			    (i) * g_size_y +		\
-// 			    ((t)%2) * g_size_x * g_size_y ]
-// #define G_VFIL(t, i, j) g_vFil[ (j) +			\
-// 			    (i) * g_size_y +		\
-// 			    ((t)%2) * g_size_x * g_size_y ]
-// #define G_HPHY(t, i, j) g_hPhy[ (j) +			\
-// 			    (i) * g_size_y +		\
-// 			    ((t)%2) * g_size_x * g_size_y ]
-// #define G_UPHY(t, i, j) g_uPhy[ (j) +			\
-// 			    (i) * g_size_y +		\
-// 			    ((t)%2) * g_size_x * g_size_y ]
-// #define G_VPHY(t, i, j) g_vPhy[ (j) +			\
-// 			    (i) * g_size_y +		\
-// 			    ((t)%2) * g_size_x * g_size_y ]
-

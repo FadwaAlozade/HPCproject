@@ -105,7 +105,6 @@ double vPhy_forward(int t, int i, int j) {
 
 void forward(int NP, int rang) {
    MPI_Status status;
-    MPI_Request isreq1, isreq2, irreq1, irreq2;
   int TAG_FIRST_ROW = 0;
   int TAG_LAST_ROW = 1;
   FILE *file = NULL;
@@ -123,22 +122,22 @@ void forward(int NP, int rang) {
   for (t = 1; t < nb_steps; t++) {
     /* Récupération et envoi des lignes à la frontière avec les proc voisins */
     
-    if (rang!=0)     MPI_Send(hFil+size_y, size_y, MPI_DOUBLE, rang-1, TAG_FIRST_ROW, MPI_COMM_WORLD);
-    //printf("First row Sent. Rank = %d\n", rang);
-    if (rang!=NP-1)  MPI_Send(hFil+size_y*(size_x-2), size_y, MPI_DOUBLE, rang+1, TAG_LAST_ROW, MPI_COMM_WORLD);
-     // printf("Last row Sent. Rank = %d\n", rang);
-    if (rang!=NP-1)  MPI_Recv(hFil+size_y*(size_x-1), size_y, MPI_DOUBLE, rang+1, TAG_FIRST_ROW, MPI_COMM_WORLD, &status);
-     // printf("First row Received. Rank = %d\n", rang);
-    if (rang!=0)     MPI_Recv(hFil, size_y, MPI_DOUBLE, rang-1, TAG_LAST_ROW, MPI_COMM_WORLD, &status);
-    //printf("Last row Received. Rank = %d\n", rang);
-
-    //  if (rang!=0)     MPI_Send(&HFIL(t,1,0), size_y, MPI_DOUBLE, rang-1, TAG_FIRST_ROW, MPI_COMM_WORLD);
+    // if (rang!=0)     MPI_Send(hFil+size_y, size_y, MPI_DOUBLE, rang-1, TAG_FIRST_ROW, MPI_COMM_WORLD);
     // //printf("First row Sent. Rank = %d\n", rang);
-    // if (rang!=NP-1)  MPI_Send(&HFIL(t,-2,1) , size_y, MPI_DOUBLE, rang+1, TAG_LAST_ROW, MPI_COMM_WORLD);
+    // if (rang!=NP-1)  MPI_Send(hFil+size_y*(size_x-2), size_y, MPI_DOUBLE, rang+1, TAG_LAST_ROW, MPI_COMM_WORLD);
     //  // printf("Last row Sent. Rank = %d\n", rang);
     // if (rang!=NP-1)  MPI_Recv(hFil+size_y*(size_x-1), size_y, MPI_DOUBLE, rang+1, TAG_FIRST_ROW, MPI_COMM_WORLD, &status);
     //  // printf("First row Received. Rank = %d\n", rang);
     // if (rang!=0)     MPI_Recv(hFil, size_y, MPI_DOUBLE, rang-1, TAG_LAST_ROW, MPI_COMM_WORLD, &status);
+    // //printf("Last row Received. Rank = %d\n", rang);
+
+    if (rang!=0)     MPI_Send(&HFIL(t,1,0), size_y, MPI_DOUBLE, rang-1, TAG_FIRST_ROW, MPI_COMM_WORLD);
+    // //printf("First row Sent. Rank = %d\n", rang);
+    if (rang!=NP-1)  MPI_Send(&HFIL(t,size_x-2,0) , size_y, MPI_DOUBLE, rang+1, TAG_LAST_ROW, MPI_COMM_WORLD);
+    //  // printf("Last row Sent. Rank = %d\n", rang);
+    if (rang!=NP-1)  MPI_Recv(&HFIL(t,size_x-1,0), size_y, MPI_DOUBLE, rang+1, TAG_FIRST_ROW, MPI_COMM_WORLD, &status);
+    //  // printf("First row Received. Rank = %d\n", rang);
+    if (rang!=0)     MPI_Recv(&HFIL(t,0,0), size_y, MPI_DOUBLE, rang-1, TAG_LAST_ROW, MPI_COMM_WORLD, &status);
     // //printf("Last row Received. Rank = %d\n", rang);
 
 
@@ -173,6 +172,36 @@ void forward(int NP, int rang) {
     if (t == 2) {
       dt = svdt;
     }
+
+    if (rang!=0)    {
+    	MPI_Send(&HPHY(t,1,0), size_y, MPI_DOUBLE, rang-1, TAG_FIRST_ROW, MPI_COMM_WORLD);
+    	MPI_Send(&UFIL(t,1,0), size_y, MPI_DOUBLE, rang-1, TAG_FIRST_ROW, MPI_COMM_WORLD);
+    	MPI_Send(&UPHY(t,1,0), size_y, MPI_DOUBLE, rang-1, TAG_FIRST_ROW, MPI_COMM_WORLD);
+    	MPI_Send(&VFIL(t,1,0), size_y, MPI_DOUBLE, rang-1, TAG_FIRST_ROW, MPI_COMM_WORLD);
+    	MPI_Send(&VPHY(t,1,0), size_y, MPI_DOUBLE, rang-1, TAG_FIRST_ROW, MPI_COMM_WORLD);
+    } 
+    if (rang!=NP-1)  {
+    	MPI_Send(&HPHY(t,size_x-2,0) , size_y, MPI_DOUBLE, rang+1, TAG_LAST_ROW, MPI_COMM_WORLD);
+    	MPI_Send(&UFIL(t,size_x-2,0) , size_y, MPI_DOUBLE, rang+1, TAG_LAST_ROW, MPI_COMM_WORLD);
+    	MPI_Send(&UPHY(t,size_x-2,0) , size_y, MPI_DOUBLE, rang+1, TAG_LAST_ROW, MPI_COMM_WORLD);
+    	MPI_Send(&VFIL(t,size_x-2,0) , size_y, MPI_DOUBLE, rang+1, TAG_LAST_ROW, MPI_COMM_WORLD);
+    	MPI_Send(&VPHY(t,size_x-2,0) , size_y, MPI_DOUBLE, rang+1, TAG_LAST_ROW, MPI_COMM_WORLD);
+    }
+    if (rang!=NP-1)  {
+    	MPI_Recv(&HPHY(t,size_x-1,0), size_y, MPI_DOUBLE, rang+1, TAG_FIRST_ROW, MPI_COMM_WORLD, &status);
+    	MPI_Recv(&UFIL(t,size_x-1,0), size_y, MPI_DOUBLE, rang+1, TAG_FIRST_ROW, MPI_COMM_WORLD, &status);
+    	MPI_Recv(&UPHY(t,size_x-1,0), size_y, MPI_DOUBLE, rang+1, TAG_FIRST_ROW, MPI_COMM_WORLD, &status);
+    	MPI_Recv(&VFIL(t,size_x-1,0), size_y, MPI_DOUBLE, rang+1, TAG_FIRST_ROW, MPI_COMM_WORLD, &status);
+    	MPI_Recv(&VPHY(t,size_x-1,0), size_y, MPI_DOUBLE, rang+1, TAG_FIRST_ROW, MPI_COMM_WORLD, &status);
+    }
+    if (rang!=0)    {
+    	 MPI_Recv(&HPHY(t,0,0), size_y, MPI_DOUBLE, rang-1, TAG_LAST_ROW, MPI_COMM_WORLD, &status);
+    	 MPI_Recv(&UFIL(t,0,0), size_y, MPI_DOUBLE, rang-1, TAG_LAST_ROW, MPI_COMM_WORLD, &status);
+    	 MPI_Recv(&UPHY(t,0,0), size_y, MPI_DOUBLE, rang-1, TAG_LAST_ROW, MPI_COMM_WORLD, &status);
+    	 MPI_Recv(&VFIL(t,0,0), size_y, MPI_DOUBLE, rang-1, TAG_LAST_ROW, MPI_COMM_WORLD, &status);
+    	 MPI_Recv(&VPHY(t,0,0), size_y, MPI_DOUBLE, rang-1, TAG_LAST_ROW, MPI_COMM_WORLD, &status);
+	}
+
   }
 
   if (rang==0){

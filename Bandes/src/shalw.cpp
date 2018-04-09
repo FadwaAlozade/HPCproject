@@ -83,3 +83,6 @@ int main(int argc, char **argv) {
 
 // Comm forward.c sur tous les 6 tableaux a la fin de la boucle
 // Homogénéiser les ufil / UFil sur les comm
+// Utiliser SendRecv
+// Puis, recouvrement avec Issend et Isrecv
+// Pourquoi pas mais pas important : par bloc et MPI-IO(plus facile que blocs)
