@@ -23,4 +23,4 @@ clean :
 	rm -f bin/* obj/*
 
 exec:
-	mpirun -n 4 -bynode ./bin/shalw -x 8192 -y 8192 -t 20
+	mpirun -n 4 -bynode ./bin/shalw 
