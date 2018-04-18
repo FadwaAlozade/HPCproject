@@ -147,14 +147,17 @@ void forward(int NP, int rang) {
 
     for (int j = 0; j < size_y; j++) {
       for (int i = 0; i < size_x; i++) {
-	HPHY(t, i, j) = hPhy_forward(t, i, j);
-	UPHY(t, i, j) = uPhy_forward(t, i, j);
-	VPHY(t, i, j) = vPhy_forward(t, i, j);
-	HFIL(t, i, j) = hFil_forward(t, i, j);
-	UFIL(t, i, j) = uFil_forward(t, i, j);
-	VFIL(t, i, j) = vFil_forward(t, i, j);
+        HPHY(t, i, j) = hPhy_forward(t, i, j);
+      	UPHY(t, i, j) = uPhy_forward(t, i, j);
+      	VPHY(t, i, j) = vPhy_forward(t, i, j);
+        HFIL(t, i, j) = hFil_forward(t, i, j);
+      	UFIL(t, i, j) = uFil_forward(t, i, j);
+      	VFIL(t, i, j) = vFil_forward(t, i, j);
       }
     }
+
+    
+
 
    //MPI_Gather(hFil+size_y*(rang!=0), g_size_x/NP*g_size_y, MPI_DOUBLE, g_hFil, g_size_x/NP*g_size_y, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     MPI_Gather(&HFIL(t,(rang!=0), 0),(g_size_x/NP)*g_size_y, MPI_DOUBLE, &G_HFIL(t, 0, 0), (g_size_x/NP)*g_size_y, MPI_DOUBLE, 0, MPI_COMM_WORLD);
