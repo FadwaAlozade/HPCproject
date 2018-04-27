@@ -23,4 +23,4 @@ clean :
 	rm -f bin/* obj/*
 
 exec:
-	mpirun -n 4 -bynode ./bin/shalw 
+	mpirun -n 4 -hostfile hostfile -bynode ./bin/shalw -x 512 -y 512 -t 40 --export --export-path ~/.

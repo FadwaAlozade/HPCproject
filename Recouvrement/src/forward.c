@@ -201,8 +201,8 @@ void forward(int NP, int rang) {
     }
 
     
-    MPI_Waitall(20, req, MPI_STATUSES_IGNORE);
-    printf("Second waitall went well. Rank = %d \n", rang);
+    //MPI_Waitall(20, req, MPI_STATUSES_IGNORE);
+    //printf("Second waitall went well. Rank = %d \n", rang);
   }
 
   if (rang==0){

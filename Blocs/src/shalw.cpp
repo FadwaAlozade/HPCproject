@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
 	loc_alloc();
 	printf("Local memory allocated. Rang = %d \n", rang); 
 
-	forward(NBdim, rang);
+	forward(NP, rang);
 	printf("State computed\n");
 
 	loc_dealloc();
