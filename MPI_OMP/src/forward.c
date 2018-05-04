@@ -124,12 +124,7 @@ void forward(int NP, int rang) {
   
   for (t = 1; t < nb_steps; t++) {
     /* Récupération et envoi des lignes à la frontière avec les proc voisins */
-  	if (rang!=0) {
-  		MPI_Sendrecv( &HFIL(t,1,0)/*sendbuf*/, size_y/*sendcount*/, MPI_DOUBLE/*sendtype*/, rang-1/*dest*/, TAG_FIRST_ROW_HFIL/*sendtag*/, &HFIL(t,0,0)/*recvbuf*/, size_y/*recvcount*/, MPI_DOUBLE/*recvtype*/, rang-1/*source*/, TAG_LAST_ROW_HFIL/*recvtag*/, MPI_COMM_WORLD/*comm*/, &status/*&status*/);
-  	}
-  	if (rang!=NP-1) {
-  		MPI_Sendrecv( &HFIL(t,size_x-2,0)/*sendbuf*/, size_y/*sendcount*/, MPI_DOUBLE/*sendtype*/, rang+1/*dest*/, TAG_LAST_ROW_HFIL/*sendtag*/, &HFIL(t,size_x-1,0)/*recvbuf*/, size_y/*recvcount*/, MPI_DOUBLE/*recvtype*/, rang+1/*source*/, TAG_FIRST_ROW_HFIL/*recvtag*/, MPI_COMM_WORLD/*comm*/, &status/*&status*/);
-  	}
+  	
 
     if (t == 1) {
       svdt = dt;
@@ -163,6 +158,12 @@ void forward(int NP, int rang) {
       dt = svdt;
     }
 
+    if (rang!=0) {
+  		MPI_Sendrecv( &HFIL(t,1,0)/*sendbuf*/, size_y/*sendcount*/, MPI_DOUBLE/*sendtype*/, rang-1/*dest*/, TAG_FIRST_ROW_HFIL/*sendtag*/, &HFIL(t,0,0)/*recvbuf*/, size_y/*recvcount*/, MPI_DOUBLE/*recvtype*/, rang-1/*source*/, TAG_LAST_ROW_HFIL/*recvtag*/, MPI_COMM_WORLD/*comm*/, &status/*&status*/);
+  	}
+  	if (rang!=NP-1) {
+  		MPI_Sendrecv( &HFIL(t,size_x-2,0)/*sendbuf*/, size_y/*sendcount*/, MPI_DOUBLE/*sendtype*/, rang+1/*dest*/, TAG_LAST_ROW_HFIL/*sendtag*/, &HFIL(t,size_x-1,0)/*recvbuf*/, size_y/*recvcount*/, MPI_DOUBLE/*recvtype*/, rang+1/*source*/, TAG_FIRST_ROW_HFIL/*recvtag*/, MPI_COMM_WORLD/*comm*/, &status/*&status*/);
+  	}
     if (rang!=0) {
   		MPI_Sendrecv( &UFIL(t,1,0)/*sendbuf*/, size_y/*sendcount*/, MPI_DOUBLE/*sendtype*/, rang-1/*dest*/, TAG_FIRST_ROW_UFIL/*sendtag*/, &UFIL(t,0,0)/*recvbuf*/, size_y/*recvcount*/, MPI_DOUBLE/*recvtype*/, rang-1/*source*/, TAG_LAST_ROW_UFIL/*recvtag*/, MPI_COMM_WORLD/*comm*/, &status/*&status*/);
   		MPI_Sendrecv( &VFIL(t,1,0)/*sendbuf*/, size_y/*sendcount*/, MPI_DOUBLE/*sendtype*/, rang-1/*dest*/, TAG_FIRST_ROW_VFIL/*sendtag*/, &VFIL(t,0,0)/*recvbuf*/, size_y/*recvcount*/, MPI_DOUBLE/*recvtype*/, rang-1/*source*/, TAG_LAST_ROW_VFIL/*recvtag*/, MPI_COMM_WORLD/*comm*/, &status/*&status*/);
