@@ -1,4 +1,4 @@
-CXX=mpic++ -Wall -O3
+CXX=mpic++ -fopenmp -Wall -O3
 
 CPPFLAGS=-Iinc
 
@@ -23,4 +23,4 @@ clean :
 	rm -f bin/* obj/*
 
 exec:
-	mpirun -n 4 -bynode ./bin/shalw -x 512 -y 512 -t 40 
+	mpirun -n 2 -bynode ./bin/shalw 
