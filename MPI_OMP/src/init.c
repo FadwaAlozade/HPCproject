@@ -11,6 +11,7 @@ void gauss_init(void) {
   gsx = 25000 ;
   gsy = 25000 ;
   
+  #pragma omp parallel for schedule(static) 
   for (int i = 0; i < g_size_x;  i++) {
     for (int j = 0; j < g_size_y; j++) {
       G_HFIL(0, i, j) = height *

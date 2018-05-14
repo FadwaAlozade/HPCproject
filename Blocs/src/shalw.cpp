@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
             printf(" hfil[%d] = %f\n", j, *(hFil+j));
         }
     }
-    //MPI_Barrier(MPI_COMM_WORLD);
+    
     int NBdim = sqrt(NP); // nombre de blocs par dimension (ligne ou colonne)
 	size_y = (rang%NBdim==0 || rang%NBdim==NBdim-1)?(g_size_y/NBdim +1):(g_size_y/NBdim +2); // Si c'est les blocs de la première colonne ou la dernière colonne, on n'alloue que 1 colonne en plus
 	size_x = ( ((rang>=0)&&(rang<NBdim)) || ((rang>=NP-NBdim)&&(rang<NP)) )?(g_size_x/NBdim +1):(g_size_x/NBdim +2); // Si c'est les blocs de la première ligne ( 0<=rang<NBdim) ou dernière ligne ( NP-NBdim <=rang<NP), alors on n'alloue qu'une seule ligne en plus

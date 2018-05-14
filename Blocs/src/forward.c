@@ -121,8 +121,8 @@ void forward(int NP, int rang) {
  	MPI_Type_commit(&block_type);
 
 
-	MPI_Scatter(g_hFil /*sbuf*/, 1 /*scount*/, block_type /*sdtype*/, hFil+1*((rang%NBdim)!=0)+size_y*(!((rang>=0)&&(rang<NBdim))) /*rbuf*/, 1 /*rcount*/, block_type /*rdtype*/, 0 /*root*/, MPI_COMM_WORLD /*comm*/);
-
+	MPI_Scatter(&G_HFIL(0,0,0) /*sbuf*/, 1 /*scount*/, block_type /*sdtype*/, &HFIL(0, (!((rang>=0)&&(rang<NBdim))),((rang%NBdim)!=0))   /*rbuf*/, 1 /*rcount*/, block_type /*rdtype*/, 0 /*root*/, MPI_COMM_WORLD /*comm*/);
+	
 	if (rang==0) {
 		if (file_export) {
 			file = create_file();

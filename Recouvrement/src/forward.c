@@ -124,7 +124,7 @@ void forward(int NP, int rang) {
   for (t = 1; t < nb_steps; t++) {
     /* Récupération et envoi des lignes à la frontière avec les proc voisins */
     if (rang!=NP-1)  MPI_Irecv(&HFIL(t,size_x-1,0), size_y, MPI_DOUBLE, rang+1, TAG_FIRST_ROW_HFIL, MPI_COMM_WORLD, &req2[2]);
-    if (rang!=0)  	 MPI_Irecv(&HFIL(t,0,0), size_y, MPI_DOUBLE, rang-1, TAG_LAST_ROW_HFIL, MPI_COMM_WORLD, &req2[3]);
+    if (rang!=0)     MPI_Irecv(&HFIL(t,0,0), size_y, MPI_DOUBLE, rang-1, TAG_LAST_ROW_HFIL, MPI_COMM_WORLD, &req2[3]);
     if (rang!=0)     MPI_Issend(&HFIL(t,1,0), size_y, MPI_DOUBLE, rang-1, TAG_FIRST_ROW_HFIL, MPI_COMM_WORLD, &req2[0]);
     if (rang!=NP-1)  MPI_Issend(&HFIL(t,size_x-2,0) , size_y, MPI_DOUBLE, rang+1, TAG_LAST_ROW_HFIL, MPI_COMM_WORLD, &req2[1]);
 

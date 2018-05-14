@@ -50,17 +50,14 @@ int main(int argc, char **argv) {
 		gauss_init();
 		printf("State initialised\n");	
 	}
-	MPI_Barrier(MPI_COMM_WORLD);
 
 	size_y = g_size_y ;
 	size_x = (rang==0 || rang==NP-1)?(g_size_x/NP +1):(g_size_x/NP +2);
 
-	loc_alloc();
-	//printf("Local memory allocated. Rang = %d \n", rang); 
+	loc_alloc(); 
 
-	//printf("Avant Scatter \n");
-	MPI_Scatter(g_hFil /*sbuf*/, g_size_x/NP*g_size_y /*scount*/, MPI_DOUBLE /*sdtype*/, hFil+size_y*(rang!=0) /*rbuf*/, g_size_x/NP*g_size_y /*rcount*/, MPI_DOUBLE /*rdtype*/, 0 /*root*/, MPI_COMM_WORLD /*comm*/);
-	//printf("Après Scatter \n");
+	MPI_Scatter(&G_HFIL(0,0,0) /*sbuf*/, g_size_x/NP*g_size_y /*scount*/, MPI_DOUBLE /*sdtype*/, &HFIL(0,(rang!=0),0) /*rbuf*/, g_size_x/NP*g_size_y /*rcount*/, MPI_DOUBLE /*rdtype*/, 0 /*root*/, MPI_COMM_WORLD /*comm*/);
+
 
 	forward(NP, rang);
 	printf("State computed\n");
@@ -80,9 +77,3 @@ int main(int argc, char **argv) {
   return EXIT_SUCCESS;
 }
 
-
-// Comm forward.c sur tous les 6 tableaux a la fin de la boucle
-// Homogénéiser les ufil / UFil sur les comm
-// Utiliser SendRecv
-// Puis, recouvrement avec Issend et Isrecv
-// Pourquoi pas mais pas important : par bloc et MPI-IO(plus facile que blocs)
