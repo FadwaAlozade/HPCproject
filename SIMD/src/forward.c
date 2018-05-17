@@ -16,19 +16,27 @@ const __m256d s2 = _mm256_set1_pd(-2);
 
 //__m256 result = _mm_mul_ps(vector, scalar);
 
+void print256_num(__m256d var) 
+{
+    double *v64val = (double*) &var;
+    printf("%.16lf %.16lf %.16lf %.16lf \n", v64val[3], v64val[2] , v64val[1], v64val[0]);
+}
+
+
 inline __m256d hFil_forward(int t, int i, int j) {
   //Phase d'initialisation du filtre
   //HPHY(t - 1, i, j) est encore nul
-	__m256d vhphy, vhphyt, vres;
+	__m256d vhphy, vhphyt, vhfil , vres;
 	if (t <= 2){
 		vres = _mm256_load_pd(&HPHY(t, i, j));
 	}
 	else {
 		vhphy = _mm256_load_pd(&HPHY(t - 1, i, j));
 		vhphyt = _mm256_load_pd(&HPHY(t, i, j));
+		vhfil = _mm256_load_pd(&HFIL(t-1, i, j));
 
 		vres = _mm256_mul_pd(vhphy, s2);
-		vres = _mm256_add_pd(vres, vhphy);
+		vres = _mm256_add_pd(vres, vhfil);
 		vres = _mm256_add_pd(vres, vhphyt);
 		vres = _mm256_mul_pd(vres, salpha);
 		vres = _mm256_add_pd(vres, vhphy);
@@ -84,127 +92,197 @@ inline __m256d hPhy_forward(int t, int i, int j) {
 	vuphy = _mm256_load_pd(&UPHY(t - 1, i, j));
 	vvphy = _mm256_load_pd(&VPHY(t - 1, i, j));
 	vhfil = _mm256_load_pd(&HFIL(t - 1, i, j));
-
 	__m256d vc = _mm256_setzero_pd();
 	__m256d vd = _mm256_setzero_pd();
 
-	if (i > 0)
+	
+	if (i > 0){
 		vc = _mm256_load_pd(&UPHY(t - 1, i - 1, j));
+	}
 
-	if (j < size_y - 1)
-		vd = _mm256_load_pd(&VPHY(t - 1, i, j + 1));
+	if (j < size_y - 1){
+		//vd = _mm256_load_pd(&VPHY(t - 1, i, j + 1));
+		vd = _mm256_permute_pd(vvphy, 0x08);
+	}
 
-	vres = _mm256_sub_pd(vuphy, vc);
-	vres = _mm256_mul_pd(vres, s1dx);
+	vres = _mm256_sub_pd(vuphy, vc); // (UPHY(t - 1, i, j) - c)
+	vres = _mm256_mul_pd(vres, s1dx); // ((UPHY(t - 1, i, j) - c) / dx
+	vres = _mm256_mul_pd(shmoy, vres); // hmoy * ((UPHY(t - 1, i, j) - c) / dx 
+	vres = _mm256_mul_pd(sdt, vres); // dt * hmoy * ((UPHY(t - 1, i, j) - c) / dx 
 
-	vres2 = _mm256_sub_pd(vd, vvphy);
-	vres2 = _mm256_mul_pd(vres2, s1dy);
+	vres2 = _mm256_sub_pd(vd, vvphy); //  (d - VPHY(t - 1, i, j))
+	vres2 = _mm256_mul_pd(vres2, s1dy); // (d - VPHY(t - 1, i, j)) / dy);
 
-	vres = _mm256_add_pd(vres, vres2);
-
-	vres = _mm256_mul_pd(sdt, vres);
-	vres = _mm256_mul_pd(shmoy, vres);
+	vres = _mm256_add_pd(vres, vres2); //dt * hmoy * ((UPHY(t - 1, i, j) - c) / dx + (d - VPHY(t - 1, i, j)) / dy);
+	vres = _mm256_sub_pd(vhfil, vres); // HFIL(t - 1, i, j) -	dt * hmoy * ((UPHY(t - 1, i, j) - c) / dx +	 	(d - VPHY(t - 1, i, j)) / dy);
 
 	return vres;
 
 	//return HFIL(t - 1, i, j) -	dt * hmoy * ((UPHY(t - 1, i, j) - c) / dx +	 	(d - VPHY(t - 1, i, j)) / dy);
 }
 
-inline __m256d uPhy_forward(int t, int i, int j) {
-  __m256d vvphy, vufil, vhphy, vres, vres1, vres2;
+// double uPhy_forward(int t, int i, int j) {
+//   double b, e, f, g;
+  
+//   if (i == size_x - 1)
+//     return 0.;
 
+//   b = 0.;
+//   if (i < size_x - 1)
+//     b = HPHY(t - 1, i + 1, j);
+
+//   e = 0.;
+//   if (j < size_y - 1)
+//     e = VPHY(t - 1, i, j + 1);
+
+//   f = 0.;
+//   if (i < size_x - 1)
+//     f = VPHY(t - 1, i + 1, j);
+
+//   g = 0.;
+//   if (i < size_x - 1 && j < size_y - 1)
+//     g = VPHY(t - 1, i + 1, j + 1);
+
+//   return UFIL(t - 1, i, j) +
+//     dt * ((-grav / dx) * (b - HPHY(t - 1, i, j)) +
+// 	  (pcor / 4.) * (VPHY(t - 1, i, j) + e + f + g) -
+// 	  (dissip * UFIL(t - 1, i, j)));
+// }
+
+inline __m256d uPhy_forward(int t, int i, int j) {
+  __m256d vvphy, vufil, vhphy, vvphyp, vres, vres1, vres2;
   vufil = _mm256_load_pd(&UFIL(t - 1, i, j));
   vvphy = _mm256_load_pd(&VPHY(t - 1, i, j));
   vhphy = _mm256_load_pd(&HPHY(t - 1, i, j));
+
+  vvphyp = _mm256_load_pd(&VPHY(t - 1, i + 1, j));
 
   __m256d vb = _mm256_setzero_pd();
   __m256d ve = _mm256_setzero_pd();
   __m256d vf = _mm256_setzero_pd();
   __m256d vg = _mm256_setzero_pd();
-  
+
   if (i == size_x - 1)
     return vb;
 
   
   if (i < size_x - 1)
     vb = _mm256_load_pd(&HPHY(t - 1, i + 1, j));
-
  
   if (j < size_y - 1)
-    ve = _mm256_load_pd(&VPHY(t - 1, i, j + 1));
-
+  	vg = _mm256_permute_pd(vvphy, 0x08);
+    //ve = _mm256_load_pd(&VPHY(t - 1, i, j + 1));
  
   if (i < size_x - 1)
     vf = _mm256_load_pd(&VPHY(t - 1, i + 1, j));
-
   
   if (i < size_x - 1 && j < size_y - 1)
-    vg = _mm256_load_pd(&VPHY(t - 1, i + 1, j + 1));
+  	vg = _mm256_permute_pd(vvphyp, 0x08);
+    //vg = _mm256_load_pd(&VPHY(t - 1, i + 1, j + 1));
 
-	vres = _mm256_mul_pd(sgrav,s1dx);
-	vres1 = _mm256_sub_pd(vb,vhphy);
-	vres= _mm256_mul_pd(vres,vres1);
-	vres= _mm256_mul_pd(sdt,vres);
-	vres1= _mm256_add_pd(vvphy,ve);
-	vres1= _mm256_add_pd(vres1,vf);
-	vres1= _mm256_add_pd(vres1,vg);
-	vres1=_mm256_mul_pd(spcor4,vres1);
-	vres2=_mm256_mul_pd(sdissip,vufil);
-	vres=_mm256_add_pd(vufil,vres);
-	vres=_mm256_add_pd(vres,vres1);
-	vres=_mm256_sub_pd(vres,vres2);
+	vres = _mm256_mul_pd(sgrav,s1dx); // -grav / dx
+	vres1 = _mm256_sub_pd(vb,vhphy); // b - HPHY(t - 1, i, j)
+	vres= _mm256_mul_pd(vres,vres1); // (-grav / dx) * (b - HPHY(t - 1, i, j))
+	vres= _mm256_mul_pd(sdt,vres); // dt * (-grav / dx) * (b - HPHY(t - 1, i, j))
+
+	vres1= _mm256_add_pd(vvphy,ve); // VPHY(t - 1, i, j) + e
+	vres1= _mm256_add_pd(vres1,vf); // VPHY(t - 1, i, j) + e + f 
+	vres1= _mm256_add_pd(vres1,vg); // VPHY(t - 1, i, j) + e + f + g
+	vres1=_mm256_mul_pd(spcor4,vres1); // (pcor / 4.) * (VPHY(t - 1, i, j) + e + f + g)
+
+	vres2=_mm256_mul_pd(sdissip,vufil); // dissip * UFIL(t - 1, i, j)
+
+	vres=_mm256_add_pd(vufil,vres); // UFIL(t - 1, i, j) +  dt * ((-grav / dx) * (b - HPHY(t - 1, i, j)) 
+	vres=_mm256_add_pd(vres,vres1); // + (pcor / 4.) * (VPHY(t - 1, i, j) + e + f + g)
+	vres=_mm256_sub_pd(vres,vres2); // - (dissip * UFIL(t - 1, i, j)))
 
 	return vres;
 
   //return UFIL(t - 1, i, j) +dt * ((-grav / dx) * (b - HPHY(t - 1, i, j)) +(pcor / 4.) * (VPHY(t - 1, i, j) + e + f + g) -(dissip * UFIL(t - 1, i, j)));
 }
 
+// double vPhy_forward(int t, int i, int j) {
+//   double c, d, e, f;
+
+//   if (j == 0)
+//     return 0.;
+
+//   c = 0.;
+//   if (j > 0)
+//     c = HPHY(t - 1, i, j - 1);
+
+//   d = 0.;
+//   if (i > 0 && j > 0)
+//     d = UPHY(t - 1, i -1, j -1);
+
+//   e = 0.;
+//   if (i > 0)
+//     e = UPHY(t - 1, i - 1, j);
+
+//   f = 0.;
+//   if (j > 0)
+//     f = UPHY(t - 1, i, j - 1);
+
+//   return VFIL(t - 1, i, j) +
+//     dt * ((-grav / dy) * (HPHY(t - 1, i, j) - c) -
+// 	  (pcor / 4.) * (d + e + f + UPHY(t - 1, i, j)) -
+// 	  (dissip * VFIL(t - 1, i, j)));
+// }
+
+
 inline __m256d vPhy_forward(int t, int i, int j) {
-  __m256d vvfil, vuphy, vhphy, vres, vres1, vres2;
+	__m256d vvfil, vuphy, vhphy, vuphyp, vres, vres1, vres2;
 
-  vuphy = _mm256_load_pd(&UPHY(t - 1, i, j));
-  vvfil = _mm256_load_pd(&VFIL(t - 1, i, j));
-  vhphy = _mm256_load_pd(&HPHY(t - 1, i, j));
+	vuphy = _mm256_load_pd(&UPHY(t - 1, i, j));
+	vvfil = _mm256_load_pd(&VFIL(t - 1, i, j));
+	vhphy = _mm256_load_pd(&HPHY(t - 1, i, j));
 
-  __m256d vc = _mm256_setzero_pd();
-  __m256d ve = _mm256_setzero_pd();
-  __m256d vf = _mm256_setzero_pd();
-  __m256d vd = _mm256_setzero_pd();
+	vuphyp = _mm256_load_pd(&UPHY(t - 1, i - 1, j));
 
-  if (j == 0)
-    return vc;
+	__m256d vc = _mm256_setzero_pd();
+	__m256d ve = _mm256_setzero_pd();
+	__m256d vf = _mm256_setzero_pd();
+	__m256d vd = _mm256_setzero_pd();
 
-
-  if (j > 0)
-    vc =_mm256_load_pd(&HPHY(t - 1, i, j - 1));
+	if (j == 0)
+		return vc;
 
 
-  if (i > 0 && j > 0)
-    vd = _mm256_load_pd(&UPHY(t - 1, i -1, j -1));
+	if (j > 0)
+		 _mm256_permute_pd(vhphy, -0x08);
+	//vc =_mm256_load_pd(&HPHY(t - 1, i, j - 1));
 
 
-  if (i > 0)
-    ve = _mm256_load_pd(&UPHY(t - 1, i - 1, j));
+	if (i > 0 && j > 0)
+		_mm256_permute_pd(vuphyp, -0x08);
+	//vd = _mm256_load_pd(&UPHY(t - 1, i -1, j -1));
 
-  
-  if (j > 0)
-    vf = _mm256_load_pd(&UPHY(t - 1, i, j - 1));
 
-	vres = _mm256_mul_pd(sgrav,s1dy);
-	vres1 = _mm256_sub_pd(vhphy,vc);
-	vres= _mm256_mul_pd(vres,vres1);
-	vres= _mm256_mul_pd(sdt,vres);
-	vres1= _mm256_add_pd(vuphy,ve);
-	vres1= _mm256_add_pd(vres1,vf);
-	vres1= _mm256_add_pd(vres1,vd);
-	vres1=_mm256_mul_pd(spcor4,vres1);
-	vres2=_mm256_mul_pd(sdissip,vvfil);
-	vres=_mm256_add_pd(vvfil,vres);
-	vres=_mm256_sub_pd(vres,vres1);
-	vres=_mm256_sub_pd(vres,vres2);
+	if (i > 0)
+		ve = _mm256_load_pd(&UPHY(t - 1, i - 1, j));
 
-  //return UFIL(t - 1, i, j) +dt * ((-grav / dx) * (b - HPHY(t - 1, i, j)) +(pcor / 4.) * (VPHY(t - 1, i, j) + e + f + g) -(dissip * UFIL(t - 1, i, j)));
-  //return VFIL(t - 1, i, j) +  dt * ((-grav / dy) * (HPHY(t - 1, i, j) - c) - (pcor / 4.) * (d + e + f + UPHY(t - 1, i, j)) - (dissip * VFIL(t - 1, i, j)));
+
+	if (j > 0)
+		 _mm256_permute_pd(vuphy, -0x08);
+		//vf = _mm256_load_pd(&UPHY(t - 1, i, j - 1));
+
+	vres = _mm256_mul_pd(sgrav,s1dy); // (-grav / dy)
+	vres1 = _mm256_sub_pd(vhphy,vc); // HPHY(t - 1, i, j) - c
+	vres= _mm256_mul_pd(vres,vres1); // ((-grav / dy) * (HPHY(t - 1, i, j) - c)
+	vres= _mm256_mul_pd(sdt,vres); // dt * ((-grav / dy) * (HPHY(t - 1, i, j) - c)
+
+	vres1= _mm256_add_pd(vuphy,ve); // UPHY(t - 1, i, j) + e 
+	vres1= _mm256_add_pd(vres1,vf); // UPHY(t - 1, i, j) + e + f
+	vres1= _mm256_add_pd(vres1,vd); // UPHY(t - 1, i, j) + e + f + d
+	vres1=_mm256_mul_pd(spcor4,vres1); // (pcor / 4.) * (d + e + f + UPHY(t - 1, i, j))
+
+	vres2=_mm256_mul_pd(sdissip,vvfil); // dissip * VFIL(t - 1, i, j))
+
+	vres=_mm256_add_pd(vvfil,vres); // VFIL(t - 1, i, j) + dt * ((-grav / dy) * (HPHY(t - 1, i, j) - c)
+	vres=_mm256_sub_pd(vres,vres1); // - (pcor / 4.) * (d + e + f + UPHY(t - 1, i, j)) - 
+	vres=_mm256_sub_pd(vres,vres2); // (dissip * VFIL(t - 1, i, j))
+
+	//return VFIL(t - 1, i, j) +  dt * ((-grav / dy) * (HPHY(t - 1, i, j) - c) - (pcor / 4.) * (d + e + f + UPHY(t - 1, i, j)) - (dissip * VFIL(t - 1, i, j)));
 	return vres;
 }
 
@@ -227,30 +305,28 @@ void forward(void) {
     if (t == 2){
       dt = svdt / 2.;
     }
-
+    int nbe = 4; 
 	for (int i = 0; i < size_x; i++) {
-	    for (int j = 0; j < size_y/256; j++) {    
+	    for (int j = 0; j < size_y/nbe; j++) {    
+			vhphy =  hPhy_forward(t, i, j*nbe);
+			_mm256_store_pd(&HPHY(t, i, j*nbe), vhphy);
 
-			// vhphy = hPhy_forward(t, i, j*8);
-			// _mm256_store_ps(&HPHY(t, i, j*8), vhphy);
-			
-			vhphy =  hPhy_forward(t, i, j*256);
-			_mm256_store_pd(&HPHY(t, i, j*256), vhphy);
+    	  	//UPHY(t, i, j) = uPhy_forward(t, i, j);
+			vuphy =  uPhy_forward(t, i, j*nbe);
+			_mm256_store_pd(&UPHY(t, i, j*nbe), vuphy);
 
-			vuphy =  uPhy_forward(t, i, j*256);
-			_mm256_store_pd(&UPHY(t, i, j*256), vuphy);
+	      	//VPHY(t, i, j) = vPhy_forward(t, i, j);
+			vvphy =  vPhy_forward(t, i, j*nbe);
+			_mm256_store_pd(&VPHY(t, i, j*nbe), vvphy);
 
-			vvphy =  vPhy_forward(t, i, j*256);
-			_mm256_store_pd(&VPHY(t, i, j*256), vvphy);
+			vhfil = hFil_forward(t, i, j*nbe);
+			_mm256_store_pd(&HFIL(t, i, j*nbe) , vhfil);
 
-			vhfil = hFil_forward(t, i, j*256);
-			_mm256_store_pd(&HFIL(t, i, j*256) , vhfil);
+			vufil = uFil_forward(t, i, j*nbe);
+			_mm256_store_pd(&UFIL(t, i, j*nbe) , vufil);
 
-			vufil = uFil_forward(t, i, j*256);
-			_mm256_store_pd(&UFIL(t, i, j*256) , vufil);
-
-			vvfil = vFil_forward(t, i, j*256);
-			_mm256_store_pd(&VFIL(t, i, j*256) , vvfil);
+			vvfil = vFil_forward(t, i, j*nbe);
+			_mm256_store_pd(&VFIL(t, i, j*nbe) , vvfil);
       }
     }
 
