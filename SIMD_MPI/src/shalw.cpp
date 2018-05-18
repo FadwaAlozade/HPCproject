@@ -28,9 +28,9 @@ int main(int argc, char **argv) {
 	/* Par processeur */ 
 	int rang; // rang
 	int NP; // NP = nombre de processus
-	int provided;
+
 	/* Initialisation MPI */
-	MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
+	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD, &NP);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rang);
 	/* Variables liees au chronometrage */
@@ -55,6 +55,7 @@ int main(int argc, char **argv) {
 	size_x = (rang==0 || rang==NP-1)?(g_size_x/NP +1):(g_size_x/NP +2);
 
 	loc_alloc();
+
 
 	MPI_Scatter(&G_HFIL(0,0,0) /*sbuf*/, g_size_x/NP*g_size_y /*scount*/, MPI_DOUBLE /*sdtype*/, &HFIL(0,(rang!=0),0) /*rbuf*/, g_size_x/NP*g_size_y /*rcount*/, MPI_DOUBLE /*rdtype*/, 0 /*root*/, MPI_COMM_WORLD /*comm*/);
 
