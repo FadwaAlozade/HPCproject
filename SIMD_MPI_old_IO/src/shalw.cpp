@@ -56,6 +56,7 @@ int main(int argc, char **argv) {
 
 	loc_alloc();
 
+
 	MPI_Scatter(&G_HFIL(0,0,0) /*sbuf*/, g_size_x/NP*g_size_y /*scount*/, MPI_DOUBLE /*sdtype*/, &HFIL(0,(rang!=0),0) /*rbuf*/, g_size_x/NP*g_size_y /*rcount*/, MPI_DOUBLE /*rdtype*/, 0 /*root*/, MPI_COMM_WORLD /*comm*/);
 
 
@@ -76,3 +77,4 @@ int main(int argc, char **argv) {
 
   return EXIT_SUCCESS;
 }
+

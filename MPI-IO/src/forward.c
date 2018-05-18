@@ -116,9 +116,7 @@ void forward(int NP, int rang) {
 		export_step(file, t, rang, NP);
 	}
 
-	//printf("Avant Scatter \n");
-	MPI_Scatter(g_hFil /*sbuf*/, g_size_x/NP*g_size_y /*scount*/, MPI_DOUBLE /*sdtype*/, hFil+size_y*(rang!=0) /*rbuf*/, g_size_x/NP*g_size_y /*rcount*/, MPI_DOUBLE /*rdtype*/, 0 /*root*/, MPI_COMM_WORLD /*comm*/);
-	//printf("Après Scatter \n");
+	
 
 	for (t = 1; t < nb_steps; t++) {
 		/* Récupération et envoi des lignes à la frontière avec les proc voisins */
