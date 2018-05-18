@@ -4,18 +4,6 @@
 #include <export.h>
 #include <immintrin.h>
 
-//const __m256d salpha = _mm256_set1_pd(alpha);
-//const __m256d sdissip = _mm256_set1_pd(dissip);
-//const __m256d spcor4 = _mm256_set1_pd(pcor/4.);
-//const __m256d sgrav = _mm256_set1_pd(-grav);
-//const __m256d shmoy = _mm256_set1_pd(hmoy);
-//const __m256d s1dx = _mm256_set1_pd(0.001);
-//onst __m256d s1dy = _mm256_set1_pd(0.001);
-//const __m256d sdt = _mm256_set1_pd(dt);
-//const __m256d s2 = _mm256_set1_pd(-2);
-
-//__m256 result = _mm_mul_ps(vector, scalar);
-
 void print256_num(__m256d var) 
 {
     double *v64val = (double*) &var;
@@ -97,7 +85,6 @@ inline __m256d vFil_forward(int t, int i, int j) {
 inline __m256d hPhy_forward(int t, int i, int j) {
 	const __m256d s1dx = _mm256_set1_pd(1./dx);
 	const __m256d s1dy = _mm256_set1_pd(1./dy);
-	const __m256d s2 = _mm256_set1_pd(-2);
 
 	__m256d vuphy, vvphy, vhfil, vres, vres2;
 	vuphy = _mm256_load_pd(&UPHY(t - 1, i, j));
@@ -140,11 +127,10 @@ inline __m256d uPhy_forward(int t, int i, int j) {
 	const __m256d sgrav = _mm256_set1_pd(-grav);
 	const __m256d sdt = _mm256_set1_pd(dt);
 
-  __m256d vvphy, vufil, vhphy, vvphyp, vres, vres1, vres2;
+  __m256d vvphy, vufil, vhphy, vres, vres1, vres2;
   vufil = _mm256_load_pd(&UFIL(t - 1, i, j));
   vvphy = _mm256_load_pd(&VPHY(t - 1, i, j));
   vhphy = _mm256_load_pd(&HPHY(t - 1, i, j));
-  vvphyp = _mm256_load_pd(&VPHY(t - 1, i + 1, j));
   
 
   __m256d vb = _mm256_setzero_pd();
@@ -196,20 +182,17 @@ inline __m256d uPhy_forward(int t, int i, int j) {
 
 
 inline __m256d vPhy_forward(int t, int i, int j) {
-	const __m256d s1dx = _mm256_set1_pd(1./dx);
 	const __m256d s1dy = _mm256_set1_pd(1./dy);
 	const __m256d spcor4 = _mm256_set1_pd(pcor/4.);
 	const __m256d sgrav = _mm256_set1_pd(-grav);
 	const __m256d sdt = _mm256_set1_pd(dt);
 	const __m256d sdissip = _mm256_set1_pd(dissip);
 
-	__m256d vvfil, vuphy, vhphy, vuphyp, vres, vres1, vres2;
+	__m256d vvfil, vuphy, vhphy, vres, vres1, vres2;
 
 	vuphy = _mm256_load_pd(&UPHY(t - 1, i, j));
 	vvfil = _mm256_load_pd(&VFIL(t - 1, i, j));
 	vhphy = _mm256_load_pd(&HPHY(t - 1, i, j));
-
-	vuphyp = _mm256_load_pd(&UPHY(t - 1, i - 1, j));
 
 	__m256d vc = _mm256_setzero_pd();
 	__m256d ve = _mm256_setzero_pd();
