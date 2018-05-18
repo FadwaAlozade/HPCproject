@@ -5,7 +5,7 @@
 
 void gauss_init(void) {
   double gmx, gmy, gsx, gsy;
-
+  omp_set_num_threads(4);
   gmx = g_size_x * dx / 2 ;
   gmy = g_size_y * dy / 2 ;
   gsx = 25000 ;

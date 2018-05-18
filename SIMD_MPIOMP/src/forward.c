@@ -255,8 +255,9 @@ void forward(int NP, int rang) {
   FILE *file = NULL;
   double svdt = 0.;
   int t = 0;
+  __m256d vhfil, vufil, vvfil, vhphy, vuphy, vvphy;
   
-  omp_set_num_threads(4)
+  omp_set_num_threads(4);
   
   if (rang==0) {
   	if (file_export) {
@@ -278,8 +279,9 @@ void forward(int NP, int rang) {
       dt = svdt / 2.;
     }
 
-    #pragma omp parallel for schedule(static) firstprivate(t)
     int nbe = 4; 
+
+    #pragma omp parallel for schedule(static) firstprivate(t)
   for (int i = 0; i < size_x; i++) {
       for (int j = 0; j < size_y/nbe; j++) {    
       vhphy =  hPhy_forward(t, i, j*nbe);
