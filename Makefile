@@ -8,6 +8,7 @@ all:
 	make -C SIMD_seq
 	make -C SIMD_MPI
 	make -C SIMD_MPIOMP
+	make -C SIMD_MPI-IO
 
 clean:
 	make clean -C Bandes
@@ -19,4 +20,5 @@ clean:
 	make clean -C SIMD_seq
 	make clean -C SIMD_MPI
 	make clean -C SIMD_MPIOMP
+	make clean -C SIMD_MPI-IO
 
