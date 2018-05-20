@@ -268,8 +268,7 @@ void forward(int NP, int rang) {
   
   
   for (t = 1; t < nb_steps; t++) {
-    /* Récupération et envoi des lignes à la frontière avec les proc voisins */
-  	
+     	
 
     if (t == 1) {
       svdt = dt;
@@ -282,29 +281,29 @@ void forward(int NP, int rang) {
     int nbe = 4; 
 
     #pragma omp parallel for schedule(static) firstprivate(t)
-  for (int i = 0; i < size_x; i++) {
-      for (int j = 0; j < size_y/nbe; j++) {    
-      vhphy =  hPhy_forward(t, i, j*nbe);
-      _mm256_store_pd(&HPHY(t, i, j*nbe), vhphy);
+    for (int i = 0; i < size_x; i++) {
+        for (int j = 0; j < size_y/nbe; j++) {    
+        vhphy =  hPhy_forward(t, i, j*nbe);
+        _mm256_store_pd(&HPHY(t, i, j*nbe), vhphy);
 
-          //UPHY(t, i, j) = uPhy_forward(t, i, j);
-      vuphy =  uPhy_forward(t, i, j*nbe);
-      _mm256_store_pd(&UPHY(t, i, j*nbe), vuphy);
+            //UPHY(t, i, j) = uPhy_forward(t, i, j);
+        vuphy =  uPhy_forward(t, i, j*nbe);
+        _mm256_store_pd(&UPHY(t, i, j*nbe), vuphy);
 
-          //VPHY(t, i, j) = vPhy_forward(t, i, j);
-      vvphy =  vPhy_forward(t, i, j*nbe);
-      _mm256_store_pd(&VPHY(t, i, j*nbe), vvphy);
+            //VPHY(t, i, j) = vPhy_forward(t, i, j);
+        vvphy =  vPhy_forward(t, i, j*nbe);
+        _mm256_store_pd(&VPHY(t, i, j*nbe), vvphy);
 
-      vhfil = hFil_forward(t, i, j*nbe);
-      _mm256_store_pd(&HFIL(t, i, j*nbe) , vhfil);
+        vhfil = hFil_forward(t, i, j*nbe);
+        _mm256_store_pd(&HFIL(t, i, j*nbe) , vhfil);
 
-      vufil = uFil_forward(t, i, j*nbe);
-      _mm256_store_pd(&UFIL(t, i, j*nbe) , vufil);
+        vufil = uFil_forward(t, i, j*nbe);
+        _mm256_store_pd(&UFIL(t, i, j*nbe) , vufil);
 
-      vvfil = vFil_forward(t, i, j*nbe);
-      _mm256_store_pd(&VFIL(t, i, j*nbe) , vvfil);
+        vvfil = vFil_forward(t, i, j*nbe);
+        _mm256_store_pd(&VFIL(t, i, j*nbe) , vvfil);
+        }
       }
-    }
 
     MPI_Gather(&HFIL(t,(rang!=0), 0),(g_size_x/NP)*g_size_y, MPI_DOUBLE, &G_HFIL(t, 0, 0), (g_size_x/NP)*g_size_y, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
@@ -318,6 +317,7 @@ void forward(int NP, int rang) {
       dt = svdt;
     }
 
+  /* Récupération et envoi des lignes à la frontière avec les proc voisins */
 	#pragma omp parallel
 	{
 		#pragma omp single

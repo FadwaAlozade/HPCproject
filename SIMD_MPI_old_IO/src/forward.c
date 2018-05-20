@@ -286,11 +286,9 @@ void forward(int NP, int rang) {
 				vhphy =  hPhy_forward(t, i, j*nbe);
 				_mm256_store_pd(&HPHY(t, i, j*nbe), vhphy);
 
-	    	  	//UPHY(t, i, j) = uPhy_forward(t, i, j);
 				vuphy =  uPhy_forward(t, i, j*nbe);
 				_mm256_store_pd(&UPHY(t, i, j*nbe), vuphy);
 
-		      	//VPHY(t, i, j) = vPhy_forward(t, i, j);
 				vvphy =  vPhy_forward(t, i, j*nbe);
 				_mm256_store_pd(&VPHY(t, i, j*nbe), vvphy);
 

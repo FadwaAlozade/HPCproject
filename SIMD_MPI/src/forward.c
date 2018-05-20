@@ -264,15 +264,6 @@ void forward(int NP, int rang) {
   
   for (t = 1; t < nb_steps; t++) {
     /* Récupération et envoi des lignes à la frontière avec les proc voisins */
-
-    // if (rang!=0)     MPI_Send(&HFIL(t,1,0), size_y, MPI_DOUBLE, rang-1, TAG_FIRST_ROW, MPI_COMM_WORLD);
-    // // //printf("First row Sent. Rank = %d\n", rang);
-    // if (rang!=NP-1)  MPI_Send(&HFIL(t,size_x-2,0) , size_y, MPI_DOUBLE, rang+1, TAG_LAST_ROW, MPI_COMM_WORLD);
-    // //  // printf("Last row Sent. Rank = %d\n", rang);
-    // if (rang!=NP-1)  MPI_Recv(&HFIL(t,size_x-1,0), size_y, MPI_DOUBLE, rang+1, TAG_FIRST_ROW, MPI_COMM_WORLD, &status);
-    // //  // printf("First row Received. Rank = %d\n", rang);
-    // if (rang!=0)     MPI_Recv(&HFIL(t,0,0), size_y, MPI_DOUBLE, rang-1, TAG_LAST_ROW, MPI_COMM_WORLD, &status);
-    // // //printf("Last row Received. Rank = %d\n", rang);
   	if (rang!=0) {
   		MPI_Sendrecv( &HFIL(t,1,0)/*sendbuf*/, size_y/*sendcount*/, MPI_DOUBLE/*sendtype*/, rang-1/*dest*/, TAG_FIRST_ROW_HFIL/*sendtag*/, &HFIL(t,0,0)/*recvbuf*/, size_y/*recvcount*/, MPI_DOUBLE/*recvtype*/, rang-1/*source*/, TAG_LAST_ROW_HFIL/*recvtag*/, MPI_COMM_WORLD/*comm*/, &status/*&status*/);
   	}
@@ -288,17 +279,15 @@ void forward(int NP, int rang) {
       dt = svdt / 2.;
     }
 
-int nbe = 4; 
+	int nbe = 4; 
 	for (int i = 0; i < size_x; i++) {
 	    for (int j = 0; j < size_y/nbe; j++) {    
 			vhphy =  hPhy_forward(t, i, j*nbe);
 			_mm256_store_pd(&HPHY(t, i, j*nbe), vhphy);
 
-    	  	//UPHY(t, i, j) = uPhy_forward(t, i, j);
 			vuphy =  uPhy_forward(t, i, j*nbe);
 			_mm256_store_pd(&UPHY(t, i, j*nbe), vuphy);
 
-	      	//VPHY(t, i, j) = vPhy_forward(t, i, j);
 			vvphy =  vPhy_forward(t, i, j*nbe);
 			_mm256_store_pd(&VPHY(t, i, j*nbe), vvphy);
 
@@ -310,12 +299,11 @@ int nbe = 4;
 
 			vvfil = vFil_forward(t, i, j*nbe);
 			_mm256_store_pd(&VFIL(t, i, j*nbe) , vvfil);
-      }
+      	}
     }
     
 
 
-   //MPI_Gather(hFil+size_y*(rang!=0), g_size_x/NP*g_size_y, MPI_DOUBLE, g_hFil, g_size_x/NP*g_size_y, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     MPI_Gather(&HFIL(t,(rang!=0), 0),(g_size_x/NP)*g_size_y, MPI_DOUBLE, &G_HFIL(t, 0, 0), (g_size_x/NP)*g_size_y, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
     if (rang==0){
@@ -328,34 +316,7 @@ int nbe = 4;
       dt = svdt;
     }
 
-   //  if (rang!=0)    {
-   //  	MPI_Send(&HPHY(t,1,0), size_y, MPI_DOUBLE, rang-1, TAG_FIRST_ROW, MPI_COMM_WORLD);
-   //  	MPI_Send(&UFIL(t,1,0), size_y, MPI_DOUBLE, rang-1, TAG_FIRST_ROW, MPI_COMM_WORLD);
-   //  	MPI_Send(&UPHY(t,1,0), size_y, MPI_DOUBLE, rang-1, TAG_FIRST_ROW, MPI_COMM_WORLD);
-   //  	MPI_Send(&VFIL(t,1,0), size_y, MPI_DOUBLE, rang-1, TAG_FIRST_ROW, MPI_COMM_WORLD);
-   //  	MPI_Send(&VPHY(t,1,0), size_y, MPI_DOUBLE, rang-1, TAG_FIRST_ROW, MPI_COMM_WORLD);
-   //  } 
-   //  if (rang!=NP-1)  {
-   //  	MPI_Send(&HPHY(t,size_x-2,0) , size_y, MPI_DOUBLE, rang+1, TAG_LAST_ROW, MPI_COMM_WORLD);
-   //  	MPI_Send(&UFIL(t,size_x-2,0) , size_y, MPI_DOUBLE, rang+1, TAG_LAST_ROW, MPI_COMM_WORLD);
-   //  	MPI_Send(&UPHY(t,size_x-2,0) , size_y, MPI_DOUBLE, rang+1, TAG_LAST_ROW, MPI_COMM_WORLD);
-   //  	MPI_Send(&VFIL(t,size_x-2,0) , size_y, MPI_DOUBLE, rang+1, TAG_LAST_ROW, MPI_COMM_WORLD);
-   //  	MPI_Send(&VPHY(t,size_x-2,0) , size_y, MPI_DOUBLE, rang+1, TAG_LAST_ROW, MPI_COMM_WORLD);
-   //  }
-   //  if (rang!=NP-1)  {
-   //  	MPI_Recv(&HPHY(t,size_x-1,0), size_y, MPI_DOUBLE, rang+1, TAG_FIRST_ROW, MPI_COMM_WORLD, &status);
-   //  	MPI_Recv(&UFIL(t,size_x-1,0), size_y, MPI_DOUBLE, rang+1, TAG_FIRST_ROW, MPI_COMM_WORLD, &status);
-   //  	MPI_Recv(&UPHY(t,size_x-1,0), size_y, MPI_DOUBLE, rang+1, TAG_FIRST_ROW, MPI_COMM_WORLD, &status);
-   //  	MPI_Recv(&VFIL(t,size_x-1,0), size_y, MPI_DOUBLE, rang+1, TAG_FIRST_ROW, MPI_COMM_WORLD, &status);
-   //  	MPI_Recv(&VPHY(t,size_x-1,0), size_y, MPI_DOUBLE, rang+1, TAG_FIRST_ROW, MPI_COMM_WORLD, &status);
-   //  }
-   //  if (rang!=0)    {
-   //  	 MPI_Recv(&HPHY(t,0,0), size_y, MPI_DOUBLE, rang-1, TAG_LAST_ROW, MPI_COMM_WORLD, &status);
-   //  	 MPI_Recv(&UFIL(t,0,0), size_y, MPI_DOUBLE, rang-1, TAG_LAST_ROW, MPI_COMM_WORLD, &status);
-   //  	 MPI_Recv(&UPHY(t,0,0), size_y, MPI_DOUBLE, rang-1, TAG_LAST_ROW, MPI_COMM_WORLD, &status);
-   //  	 MPI_Recv(&VFIL(t,0,0), size_y, MPI_DOUBLE, rang-1, TAG_LAST_ROW, MPI_COMM_WORLD, &status);
-   //  	 MPI_Recv(&VPHY(t,0,0), size_y, MPI_DOUBLE, rang-1, TAG_LAST_ROW, MPI_COMM_WORLD, &status);
- 		// }
+
 
     if (rang!=0) {
   		MPI_Sendrecv( &UFIL(t,1,0)/*sendbuf*/, size_y/*sendcount*/, MPI_DOUBLE/*sendtype*/, rang-1/*dest*/, TAG_FIRST_ROW_UFIL/*sendtag*/, &UFIL(t,0,0)/*recvbuf*/, size_y/*recvcount*/, MPI_DOUBLE/*recvtype*/, rang-1/*source*/, TAG_LAST_ROW_UFIL/*recvtag*/, MPI_COMM_WORLD/*comm*/, &status/*&status*/);
