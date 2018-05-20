@@ -113,7 +113,7 @@ void forward(int NP, int rang) {
   FILE *file = NULL;
   double svdt = 0.;
   int t = 0;
-  omp_set_num_threads(4);
+  omp_set_num_threads(2);
   if (rang==0) {
   	if (file_export) {
 	    file = create_file();

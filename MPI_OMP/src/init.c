@@ -2,7 +2,7 @@
 #include <shalw.h>
 #include <stdlib.h>
 #include <stdio.h>
-
+#include <omp.h>
 void gauss_init(void) {
   double gmx, gmy, gsx, gsy;
   omp_set_num_threads(4);
